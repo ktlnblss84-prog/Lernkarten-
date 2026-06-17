@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lernkarten – Berufliche Kommunikation</title>
+<style>
+  :root {
+    --ink: #1c2b2d;
+    --paper: #f3ede1;
+    --card: #fbf8f1;
+    --accent: #c2542a;
+    --accent-soft: #e8d9c4;
+    --teal: #2f6d6a;
+    --teal-soft: #d4e3e0;
+    --line: #d8cdb8;
+    --muted: #6b6357;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: clamp(16px, 4vw, 40px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.5;
+  }
+  header {
+    width: 100%;
+    max-width: 640px;
+    margin-bottom: 22px;
+  }
+  .eyebrow {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-size: clamp(1.7rem, 6vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+  }
+  .sub {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-top: 6px;
+  }
+
+  .filters {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .chip {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border: 1.5px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    padding: 7px 13px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: var(--card);
+  }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .stage {
+    width: 100%;
+    max-width: 640px;
+    perspective: 1600px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    min-height: 360px;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(.2,.7,.2,1);
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+  }
+  .face {
+    position: absolute;
+    inset: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: clamp(22px, 5vw, 40px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 18px 40px -28px rgba(28,43,45,0.5);
+  }
+  .face.back { transform: rotateY(180deg); }
+
+  .tag {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .back .tag { color: var(--teal); }
+
+  .q {
+    font-size: clamp(1.25rem, 4.5vw, 1.7rem);
+    font-weight: 700;
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+  }
+  .hint {
+    margin-top: auto;
+    padding-top: 20px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .a-body {
+    overflow-y: auto;
+    flex: 1;
+  }
+  .a-body ul { list-style: none; }
+  .a-body li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 11px;
+    font-size: 1.02rem;
+  }
+  .a-body li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 7px;
+    height: 7px;
+    background: var(--accent);
+    border-radius: 2px;
+    transform: rotate(45deg);
+  }
+  .a-body li strong { font-weight: 700; }
+  .a-body p { font-size: 1.05rem; margin-bottom: 10px; }
+  .a-body .em { color: var(--teal); font-style: italic; }
+  .a-body .ex {
+    margin-top: 4px;
+    padding: 10px 13px;
+    background: var(--teal-soft);
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-style: italic;
+    color: var(--ink);
+  }
+  .a-body .ex::before { content: "z. B. "; font-style: normal; font-weight: 700; color: var(--teal); }
+
+  .controls {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 22px;
+    gap: 14px;
+  }
+  .nav {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1.5px solid var(--ink);
+    background: var(--card);
+    color: var(--ink);
+    padding: 12px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .nav:hover { background: var(--ink); color: var(--card); }
+  .nav:disabled { opacity: 0.3; cursor: default; }
+  .nav:disabled:hover { background: var(--card); color: var(--ink); }
+  .nav:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .counter {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    min-width: 64px;
+    text-align: center;
+  }
+  .counter span { color: var(--muted); font-weight: 500; }
+
+  .progress {
+    width: 100%;
+    max-width: 640px;
+    height: 4px;
+    background: var(--accent-soft);
+    border-radius: 999px;
+    margin-top: 18px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0;
+    transition: width 0.3s ease;
+  }
+  footer {
+    margin-top: 26px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-align: center;
+  }
+  kbd {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.68rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Lernkarten · Mucha Sigrid</div>
+  <h1>Berufliche Kommunikation</h1>
+  <div class="sub">Antippen zum Umdrehen · Pfeiltasten zum Blättern</div>
+</header>
+
+<div class="filters" id="filters" role="group" aria-label="Themen filtern"></div>
+
+<div class="stage">
+  <div class="card" id="card" role="button" tabindex="0" aria-label="Karte umdrehen">
+    <div class="face front">
+      <div class="tag" id="frontTag"></div>
+      <div class="q" id="question"></div>
+      <div class="hint">Antippen für die Antwort →</div>
+    </div>
+    <div class="face back">
+      <div class="tag" id="backTag"></div>
+      <div class="a-body" id="answer"></div>
+    </div>
+  </div>
+</div>
+
+<div class="progress"><div class="progress-bar" id="bar"></div></div>
+
+<div class="controls">
+  <button class="nav" id="prev">← Zurück</button>
+  <div class="counter"><span id="cur">1</span> <span>/</span> <span id="total">1</span></div>
+  <button class="nav" id="next">Weiter →</button>
+</div>
+
+<footer>Tipp: <kbd>Leertaste</kbd> umdrehen · <kbd>←</kbd> <kbd>→</kbd> blättern</footer>
+
+<script>
+const CARDS = [
+  // ── Grundlagen ──
+  { cat:"Grundlagen", q:"Wofür braucht man gute Kommunikation im Berufsleben?",
+    a:`<ul><li>Gute Kommunikation macht ein <strong>Unternehmen erfolgreich</strong></li><li>Sie bewahrt vor <strong>Missverständnissen und Konflikten</strong></li></ul>` },
+  { cat:"Grundlagen", q:"Interne Kommunikation – was kennzeichnet sie?",
+    a:`<p>Informationsaustausch zwischen <strong>Mitarbeitern und Chefs im Unternehmen</strong>.</p><ul><li>nicht so formell</li><li>eher lockerer Stil</li><li>oft nur sehr kurz</li></ul>` },
+  { cat:"Grundlagen", q:"Externe Kommunikation – was kennzeichnet sie?",
+    a:`<p>Informationsaustausch mit Personen <strong>außerhalb des Betriebes</strong>.</p><ul><li><strong>Achtung: Verschwiegenheitspflicht!</strong></li><li>unterliegt Normen – formell</li><li>gute Formulierung und Rechtschreibung beachten</li></ul>` },
+  { cat:"Grundlagen", q:"Mit wem kommuniziert ein Unternehmen extern?",
+    a:`<ul><li>Geschäftspartner</li><li>Lieferanten</li><li>Kunden</li><li>Gewerkschaften</li><li>Politik</li><li>Investoren</li><li>Medien</li></ul>` },
+  { cat:"Grundlagen", q:"Welche drei Arten der Kommunikation gibt es?",
+    a:`<ul><li><strong>Persönlich:</strong> Gespräche vor Ort, zwischen 2 oder mehreren Personen</li><li><strong>Schriftlich:</strong> E-Mails, Geschäftsbriefe, Normbriefe, WhatsApp/SMS</li><li><strong>Telefonisch:</strong> Gespräche – Gesprächspartner nicht am selben Ort</li></ul>` },
+  { cat:"Grundlagen", q:"Welchen Vorteil hat schriftliche gegenüber persönlicher Kommunikation?",
+    a:`<ul><li>Alle Aussagen sind <strong>schriftlich dokumentiert</strong></li><li>Im Streitfall wichtig, weil <strong>nachlesbar und nachweisbar</strong></li><li>Tipp: Screenshots machen</li></ul>` },
+  { cat:"Grundlagen", q:"Wie läuft schriftliche Kommunikation zwischen Kunde und Unternehmen ab?",
+    a:`<p><strong>Kunde → Unternehmen:</strong></p><ul><li>Anfragen, Bestellungen, Reklamationen</li></ul><p><strong>Unternehmen → Kunde:</strong></p><ul><li>Angebote, Bestätigungen, Rechnungen, Lieferscheine, Mahnungen</li></ul>` },
+  { cat:"Grundlagen", q:"Welche privaten Gründe gibt es, einen Normbrief zu schreiben?",
+    a:`<ul><li>Bewerbungen</li><li>Kündigungen</li><li>Einladungen</li></ul>` },
+
+  // ── Briefe schreiben ──
+  { cat:"Briefe schreiben", q:"Welche Schreiben werden mit der Post (Einschreiben) verschickt?",
+    a:`<ul><li>Schreiben von oder an Behörden</li><li>Vertragskündigungen</li><li>Mahnungen</li><li>Verträge</li></ul><p class="em">Unbedingt per Einschreiben – die Person, die den Brief erhält, muss unterschreiben!</p>` },
+  { cat:"Briefe schreiben", q:"Privatbrief vs. Geschäftsbrief – wer schreibt an wen?",
+    a:`<ul><li><strong>Privatbrief:</strong> Privatperson an Privatperson</li><li><strong>Geschäftsbrief:</strong> Unternehmen an Unternehmen / Kunden</li></ul>` },
+  { cat:"Briefe schreiben", q:"Privatbrief vs. Geschäftsbrief – Bezugszeichen?",
+    a:`<ul><li><strong>Privatbrief:</strong> nur Ort, Datum – rechtsbündig</li><li><strong>Geschäftsbrief:</strong> Bezugszeichenblock, Schriftgröße 9 (Ihre Nachricht vom, Bearbeiter, Zeichen, Lieferdatum, Telefon, E-Mail, Ort/Datum)</li></ul>` },
+  { cat:"Briefe schreiben", q:"Privatbrief vs. Geschäftsbrief – Abschluss?",
+    a:`<ul><li><strong>Privatbrief:</strong> keine Vorgaben, nur handschriftliche Unterschrift</li><li><strong>Geschäftsbrief:</strong> „Mit freundlichen Grüßen", Firmenwortlaut (Name + Rechtsform), Unterschrift, Wiederholung des Namens am PC</li></ul>` },
+  { cat:"Briefe schreiben", q:"Checkliste Briefgestaltung – worauf achten?",
+    a:`<ul><li>gut lesbare Schrift (Calibri, Verdana, Arial) – <strong>ohne Serifen</strong></li><li>Schriftgröße 10–12, je nach Textmenge</li><li>automatische Silbentrennung (Layout → Silbentrennung → Automatisch)</li><li>Rechtschreibprüfung (Überprüfen → Rechtschreibung)</li></ul>` },
+
+  // ── Briefbestandteile ──
+  { cat:"Briefbestandteile", q:"Nenne die Bestandteile eines Geschäftsbriefs (Aufbau).",
+    a:`<ul><li>Absenderangabe (Kopfzeile)</li><li>Empfängerangabe</li><li>Ort, Datum</li><li>Bezugszeichenblock</li><li>Betreff</li><li>Anrede</li><li>Text</li><li>Grußformel</li><li>Beilagen/Anlagen</li><li>Unternehmensinformationen (Fußzeile)</li></ul>` },
+  { cat:"Briefbestandteile", q:"Welche Absenderangaben müssen im Brief stehen?",
+    a:`<ul><li>in der <strong>Kopfzeile</strong></li><li>alle Kontaktinformationen des Unternehmens: Name, Adresse, Telefon, E-Mail, Webadresse</li></ul>` },
+  { cat:"Briefbestandteile", q:"Welche Empfängerangaben müssen im Brief stehen?",
+    a:`<ul><li>nicht mehr als 6 Zeilen</li><li>Rücksendeangaben (nötig bei <strong>Fensterkuvert</strong>)</li><li>Anschrift im Fensterkuvert gut lesbar</li><li>keine ausgefallene Schriftart / Hervorhebungen</li></ul>` },
+  { cat:"Briefbestandteile", q:"Was sind Bezugszeichen?",
+    a:`<ul><li>Informationen, die sich auf den <strong>aktuellen Schriftwechsel</strong> beziehen</li><li>kleinere Schriftgröße (z. B. 9) – Tabstopp bei 11–12,5 cm von links</li><li>vor „Name/Bearbeiter" und „Datum" muss eine Leerzeile sein</li></ul><p class="em">Start → Absatz → Tabstopps → cm eingeben → Festlegen → OK</p>` },
+  { cat:"Briefbestandteile", q:"Was ist ein Betreff?",
+    a:`<ul><li>= <strong>Grund des Schreibens</strong></li><li>bei 11–11,5 cm von oben</li><li>stichwortartige Inhaltsangabe</li><li>kurz und aussagekräftig – auf den 1. Blick den Sachverhalt erkennen</li><li>danach 2 Leerzeilen</li></ul><div class="ex">Bestellbestätigung – Auftragsnummer 12345</div>` },
+  { cat:"Briefbestandteile", q:"Was ist eine Anrede?",
+    a:`<ul><li>Begrüßung des Empfängers</li><li>danach Rufzeichen oder Beistrich (<strong>klein weiterschreiben!</strong>)</li><li>gut bekannt: „Liebe/r …!" – offiziell: „Sehr geehrte/r …!"</li><li>wenn möglich mit Namen / akademischem Grad / Titel</li><li>danach 1 Leerzeile</li></ul>` },
+  { cat:"Briefbestandteile", q:"Was ist ein Briefabschluss? Wie ist er aufgebaut?",
+    a:`<ul><li>1 Leerzeile nach dem Text</li><li>höfliche Grußformel (Mit freundlichen / besten / herzlichen Grüßen)</li><li>Wiederholung des Firmenwortlautes</li><li>Unterschrift</li><li>Wiederholung des Namens (am Computer)</li><li>1–2 Leerzeilen, dann Beilagenvermerk</li></ul>` },
+
+  // ── Brieftext & Schriftstücke ──
+  { cat:"Brieftext", q:"Aus welchen 3 Teilen besteht ein Brieftext?",
+    a:`<ul><li><strong>Einstieg</strong></li><li><strong>Hauptteil</strong></li><li><strong>Schluss</strong></li></ul>` },
+  { cat:"Brieftext", q:"Was gehört zu einem Einstieg?",
+    a:`<ul><li>Anrede – Begrüßung</li><li>Grund des Schreibens: kurze Info, worum es geht</li></ul><div class="ex">Wie telefonisch vereinbart, sende ich Ihnen …</div><div class="ex">Bezugnehmend auf … möchte ich …</div>` },
+  { cat:"Brieftext", q:"Was gehört in einen Hauptteil?",
+    a:`<ul><li>genauer auf das Anliegen eingehen</li><li>enthält alle – für den Empfänger wesentlichen – Informationen</li><li>Wichtiges hervorheben = <strong>fett</strong></li></ul><div class="ex">Senden Sie mir bitte zu diesem Thema detaillierte Unterlagen.</div>` },
+  { cat:"Brieftext", q:"Was gehört zu einem Schluss?",
+    a:`<ul><li>Anliegen zusammenfassen – zu einer <strong>Handlung auffordern</strong></li></ul><div class="ex">Sollten Fragen offen bleiben, wenden Sie sich bitte jederzeit an uns.</div><div class="ex">Ich erwarte Ihre Antwort mit Interesse.</div>` },
+  { cat:"Brieftext", q:"Welche 2 Fragen stehen am Anfang jedes Brieftextes?",
+    a:`<ul><li><strong>Warum</strong> schreibe ich?</li><li><strong>Was</strong> will ich fragen/wissen?</li></ul>` },
+  { cat:"Brieftext", q:"Welche betrieblichen Schriftstücke gibt es? (Anbahnung Kaufvertrag, BWG)",
+    a:`<ul><li><strong>Anfrage</strong> = Kunde</li><li><strong>Angebot</strong> = Verkäufer</li><li><strong>Bestellung</strong> = Kunde</li><li><strong>Auftragsbestätigung</strong> = Verkäufer</li></ul>` },
+  { cat:"Brieftext", q:"Was ist eine Anfrage? Welche Formen gibt es?",
+    a:`<p>Du führst an, welche Informationen du haben willst.</p><ul><li><strong>Allgemeine Information:</strong> Kataloge, Prospekte</li><li><strong>Spezielle Information:</strong> Menge, Zahlungs-/Lieferbedingungen, Produkteigenschaften, Preis</li></ul><div class="ex">Wir interessieren uns für … Bitte senden Sie uns ein Angebot bis spätestens …</div>` },
+  { cat:"Brieftext", q:"Was ist ein Angebot? Welche Punkte muss es enthalten?",
+    a:`<p>Reaktion/Bezug auf eine Anfrage. Enthält:</p><ul><li>Beschreibung der Ware, Menge, Preis</li><li>Gültigkeit des Angebotes</li><li>Liefer- und Zahlungsbedingungen</li><li>Allgemeine Geschäftsbedingungen</li></ul><div class="ex">Besten Dank für Ihre Anfrage. Wir bieten Ihnen …</div>` },
+  { cat:"Brieftext", q:"Was ist eine Bestellung? Worauf achten?",
+    a:`<ul><li>Klar erkennbar, <strong>was</strong> und <strong>zu welchen Bedingungen</strong> bestellt wird!</li></ul><div class="ex">Wie heute telefonisch vereinbart, bestellen wir …</div><div class="ex">Wir bestellen zu den in Ihrem Angebot vom … festgelegten Bedingungen. Ihre Lieferung erwarten wir bis …</div>` },
+  { cat:"Brieftext", q:"Was ist eine Auftragsbestätigung? Welche Punkte muss sie enthalten?",
+    a:`<ul><li>Dank für die Bestellung</li><li>Zusammenfassung der Details – um <strong>Fehler/Missverständnisse zu vermeiden</strong></li><li>häufig muss der Käufer mit <strong>Unterschrift</strong> bestätigen</li></ul><p><strong>Punkte:</strong> Bestelldatum, Beschreibung der Ware, Menge, Preis, Liefer- und Zahlungsbedingungen</p><div class="ex">Wir bestätigen den Eingang Ihrer Bestellung und fassen zusammen: …</div>` },
+
+  // ── E-Mails schreiben ──
+  { cat:"E-Mails", q:"Welche Gründe sprechen für E-Mails?",
+    a:`<ul><li><strong>Zeit und Ort:</strong> innerhalb von Sekunden beim Empfänger, weltweit abrufbar, zu jeder Tageszeit</li><li><strong>Kosten:</strong> keine Versandkosten, kein Anbieter nötig, keine App nötig</li><li><strong>Vereinbarungen:</strong> alles schriftlich dokumentiert, alle Infos speicherbar, Bilder/Dokumente/Videos mitsendbar</li></ul>` },
+  { cat:"E-Mails", q:"Was ist die Nettiquette?",
+    a:`<ul><li>Zusammensetzung aus „<strong>net</strong>" (Netz) und „<strong>Etiquette</strong>" (Verhaltensregeln)</li><li>= Verhaltensregeln in der elektronischen Kommunikation</li></ul>` },
+  { cat:"E-Mails", q:"Nettiquette – Regeln für die Formatierung?",
+    a:`<ul><li>gut lesbare Schriftart (Calibri, Arial), Größe 11–12 Pkt.</li><li><strong>keine Großbuchstaben</strong> – wirkt wie Schreien</li><li>fett, unterstrichen oder Farbe zum Hervorheben wichtiger Daten <strong>sparsam</strong> einsetzen</li></ul>` },
+  { cat:"E-Mails", q:"Nettiquette – Regeln für die Formulierung?",
+    a:`<ul><li>konzentriere dich auf das <strong>Wesentliche</strong></li><li><strong>keine Emojis</strong> – nicht seriös</li><li>Rechtschreib- & Grammatikprüfung</li><li>vollständige Sätze</li><li>höflich/sachlich bleiben – auch bei Reklamationen</li></ul>` },
+  { cat:"E-Mails", q:"Wann ist ein Telefongespräch besser als eine E-Mail?",
+    a:`<ul><li>geht <strong>schneller</strong></li><li>nur bei <strong>kurzen Rückfragen</strong></li></ul>` },
+  { cat:"E-Mails", q:"Welche Bestandteile hat eine richtige Anschrift?",
+    a:`<ul><li>Name / Anschrift = Straßenname / Hausnummer</li><li>Postleitzahl / Ort</li><li>E-Mail</li><li>Telefonnummer</li></ul><p class="em">Eine E-Mail-Adresse ist eigentlich = eine Anschrift</p>` },
+  { cat:"E-Mails", q:"Was dürfen E-Mail-Adressen nicht enthalten?",
+    a:`<ul><li>keine Leerzeichen</li><li>keine Umlaute (ä = ae, ü = ue …)</li><li>kein ß (= ss)</li></ul><p>Statt Leerzeichen verwendet man: Punkt . Bindestrich - Unterstrich _</p>` },
+  { cat:"E-Mails", q:"Wie sollte eine private/seriöse E-Mail-Adresse aussehen?",
+    a:`<ul><li>Vor- und Nachname</li><li>seriöse Adressen wirken professioneller</li></ul><div class="ex">sigrid.mucha@gmail.com  ✓  statt  mausibärli@gmx.at  ✗</div>` },
+  { cat:"E-Mails", q:"Welchen Vorteil hat ein aussagekräftiger Betreff?",
+    a:`<ul><li>ist bereits in der Übersicht des Posteingangs sichtbar</li></ul><p>Ein Brief wird <strong>nie ohne Betreff</strong> verschickt – das wirkt unprofessionell und nicht vertrauenserweckend.</p>` },
+  { cat:"E-Mails", q:'Was bedeuten „AW" und „Re" im Betreff?',
+    a:`<ul><li><strong>AW</strong> = Antwort</li><li><strong>Re</strong> = zurück (ersichtlich, dass davor bereits geschrieben wurde)</li></ul>` },
+  { cat:"E-Mails", q:"Worauf bei einer höflichen Anrede in der E-Mail achten?",
+    a:`<ul><li>fester Bestandteil einer E-Mail</li><li>danach 1 Leerzeile</li><li>passend zum Anlass und zur Beziehung zum Empfänger</li><li>Empfänger mit Namen ansprechen</li></ul>` },
+  { cat:"E-Mails", q:"Gestaltung & Formatierung einer E-Mail (Text)?",
+    a:`<ul><li>gleiche Regeln wie im Geschäftsbrief – Einleitung/Hauptteil/Schluss</li><li>Fließtext ohne Worttrennungen – erst beim Empfänger generiert</li><li>Darstellung hängt vom Empfängergerät ab – keine ausgefallenen Formatierungen</li></ul>` },
+  { cat:"E-Mails", q:"Checkliste für gut lesbaren E-Mail-Text?",
+    a:`<ul><li>kurze Sätze</li><li>Absätze – leichter verständlich</li><li>Listen und Aufzählungszeichen für Übersichtlichkeit</li><li>einfache Wörter</li><li>positive Sprache – Verbesserungsvorschläge statt Kritik</li></ul>` },
+  { cat:"E-Mails", q:"Was muss beim Anhang beachtet werden?",
+    a:`<ul><li>darauf hinweisen, dass Anhänge vorhanden sind</li><li>Anhänge nicht vergessen</li><li>Datenmenge max. <strong>5 MB</strong> (Postfächer begrenzt)</li><li>Link für große Datenmengen (Cloud)</li><li><strong>PDF-Format</strong> verwenden – Formatierung bleibt, Datenmenge wird komprimiert</li></ul>` },
+  { cat:"E-Mails", q:"E-Mail-Abschluss – Grußformel und Signatur?",
+    a:`<ul><li>Grußformel wertschätzend – positiver Eindruck</li><li>Textbaustein in Form einer Signatur = <strong>digitale Unterschrift</strong></li></ul><div class="ex">Herzliche Grüße aus dem sonnigen … / Einen schönen Start …</div>` },
+
+  // ── Layout / Maße ──
+  { cat:"Layout & Maße", q:"Genormter Musterbrief – welche Abstände gelten? (von links)",
+    a:`<ul><li>Rücksendeangaben: <strong>4,5 cm</strong></li><li>Betreff: <strong>11,5 cm</strong> von oben</li><li>Grußformel: <strong>2,5 cm</strong></li><li>Bezugszeichen-Tabstopp: <strong>12,5 cm</strong></li></ul>` },
+  { cat:"Layout & Maße", q:"Was steht im Briefkopf, was in der Fußzeile?",
+    a:`<ul><li><strong>Briefkopf (Kopfzeile):</strong> Absenderangabe – von wem stammt der Brief? Firmenname, Rechtsform, Sitz (= Adresse)</li><li><strong>Fußzeile:</strong> Unternehmensinformationen – Firmenname, Rechtsform, UID-Nummer, Firmenbuchnummer & -gericht</li></ul>` },
+  { cat:"Layout & Maße", q:"Welche Unternehmensinformationen müssen angegeben werden?",
+    a:`<ul><li>Firmenname</li><li>Rechtsform und Sitz (gemäß Firmenbuch)</li><li>Firmenbuchnummer und Firmenbuchgericht</li><li>ggf. Bankverbindung, UID-Nummer</li></ul>` },
+];
+
+let order = CARDS.map((_, i) => i);
+let pos = 0;
+let activeCat = "Alle";
+
+const card = document.getElementById('card');
+const frontTag = document.getElementById('frontTag');
+const backTag = document.getElementById('backTag');
+const question = document.getElementById('question');
+const answer = document.getElementById('answer');
+const cur = document.getElementById('cur');
+const total = document.getElementById('total');
+const bar = document.getElementById('bar');
+const prev = document.getElementById('prev');
+const next = document.getElementById('next');
+const filters = document.getElementById('filters');
+
+const cats = ["Alle", ...Array.from(new Set(CARDS.map(c => c.cat)))];
+cats.forEach(cat => {
+  const b = document.createElement('button');
+  b.className = 'chip';
+  b.textContent = cat;
+  b.setAttribute('aria-pressed', cat === activeCat ? 'true' : 'false');
+  b.addEventListener('click', () => setCat(cat));
+  filters.appendChild(b);
+});
+
+function setCat(cat) {
+  activeCat = cat;
+  [...filters.children].forEach(c =>
+    c.setAttribute('aria-pressed', c.textContent === cat ? 'true' : 'false'));
+  order = CARDS.map((_, i) => i).filter(i => cat === "Alle" || CARDS[i].cat === cat);
+  pos = 0;
+  render();
+}
+
+function render() {
+  card.classList.remove('flipped');
+  const c = CARDS[order[pos]];
+  frontTag.textContent = c.cat;
+  backTag.textContent = c.cat;
+  question.textContent = c.q;
+  answer.innerHTML = c.a;
+  cur.textContent = pos + 1;
+  total.textContent = order.length;
+  bar.style.width = ((pos + 1) / order.length * 100) + '%';
+  prev.disabled = pos === 0;
+  next.disabled = pos === order.length - 1;
+}
+
+function flip() { card.classList.toggle('flipped'); }
+function go(d) {
+  const n = pos + d;
+  if (n < 0 || n >= order.length) return;
+  pos = n;
+  render();
+}
+
+card.addEventListener('click', flip);
+card.addEventListener('keydown', e => {
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); }
+});
+prev.addEventListener('click', () => go(-1));
+next.addEventListener('click', () => go(1));
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') go(-1);
+  if (e.key === 'ArrowRight') go(1);
+  if (e.key === ' ' && e.target === document.body) { e.preventDefault(); flip(); }
+});
+
+render();
+</script>
+</body>
+</html>
